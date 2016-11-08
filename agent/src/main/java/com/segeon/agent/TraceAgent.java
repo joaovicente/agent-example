@@ -10,12 +10,15 @@ package com.segeon.agent;/*
  */
 
 import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.pool.TypePool;
 
+import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 
 import static com.segeon.agent.helper.DebugListener.getListener;
@@ -46,6 +49,29 @@ public class TraceAgent {
                                             .or(takesArguments(httpUriRequestDescription(), httpContextDescription()))
                                             .or(takesArguments(httpHostDescription(), httpRequestDescription())))
                                     .and(returns(named("org.apache.http.client.methods.CloseableHttpResponse"))))
+                                    .intercept(MethodDelegation.to(resolution.resolve()));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return builder;
+                        }
+                    }
+                }).installOn(instrumentation);
+        // Intercept com.segeon.testapp.Noop.perform() method using com.segeon.agent.interceptor.TimingInterceptor"
+        new AgentBuilder.Default()
+                .withListener(getListener())
+//                .type(ElementMatchers.nameEndsWith("Noop"))
+                .type(named("com.segeon.testapp.Noop"))
+                .transform(new AgentBuilder.Transformer() {
+                    public DynamicType.Builder transform(DynamicType.Builder builder,
+                                                         TypeDescription typeDescription) {
+                        try {
+                            String interceptor = "com.segeon.agent.interceptor.TimingInterceptor";
+                            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+                            new ClassFileLocator.Compound(ClassFileLocator.ForClassLoader.of(contextClassLoader),
+                                    ClassFileLocator.ForClassLoader.of(TraceAgent.class.getClassLoader()));
+                            TypePool.Resolution resolution = TypePool.Default.of(ClassFileLocator.ForClassLoader.of(contextClassLoader)).describe(interceptor);
+//                            return builder.method(ElementMatchers.any())
+                            return builder.method(named("perform"))
                                     .intercept(MethodDelegation.to(resolution.resolve()));
                         } catch (Exception e) {
                             e.printStackTrace();
