@@ -20,7 +20,7 @@ public class TimingInterceptor {
         }
           catch (Exception e)  {
         } finally {
-            System.out.println("Intercepted after " + method + " " + System.currentTimeMillis() + " [" + Thread.currentThread().getName() + "]");
+            System.out.println("Intercepted after  " + method + " " + System.currentTimeMillis() + " [" + Thread.currentThread().getName() + "]");
         }
         return null;
     }

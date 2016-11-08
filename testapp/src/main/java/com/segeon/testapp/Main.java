@@ -15,8 +15,9 @@ public class Main {
             try {
                 CloseableHttpResponse response = HttpClients.createDefault().execute(new HttpGet("http://www.ifeng.com/"));
                 //System.out.println(EntityUtils.toString(response.getEntity()));
-                Noop noop = new Noop();
-                noop.perform();
+                NoopServlet noopServlet = new NoopServlet();
+                noopServlet.methodA();
+                noopServlet.methodB();
                 System.out.println(response.getStatusLine());
             } catch (IOException e) {
                 e.printStackTrace();
