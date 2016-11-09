@@ -34,6 +34,7 @@ public class TraceAgent {
         new AgentBuilder.Default()
                 .withListener(getListener())
                 .type(named("org.apache.http.impl.client.CloseableHttpClient"))
+
                 .transform(new AgentBuilder.Transformer() {
                     public DynamicType.Builder transform(DynamicType.Builder builder,
                                                          TypeDescription typeDescription) {
@@ -59,7 +60,7 @@ public class TraceAgent {
         // Intercept com.segeon.testapp.Noop.perform() method using com.segeon.agent.interceptor.TimingInterceptor"
         new AgentBuilder.Default()
                 .withListener(getListener())
-                .type(ElementMatchers.nameEndsWith("Servlet"))
+                .type(ElementMatchers.nameEndsWith("Servlet").and(not(isInterface())))
 //                .type(named("com.segeon.testapp.NoopServlet"))
                 .transform(new AgentBuilder.Transformer() {
                     public DynamicType.Builder transform(DynamicType.Builder builder,
@@ -70,7 +71,9 @@ public class TraceAgent {
                             new ClassFileLocator.Compound(ClassFileLocator.ForClassLoader.of(contextClassLoader),
                                     ClassFileLocator.ForClassLoader.of(TraceAgent.class.getClassLoader()));
                             TypePool.Resolution resolution = TypePool.Default.of(ClassFileLocator.ForClassLoader.of(contextClassLoader)).describe(interceptor);
-                            return builder.method(ElementMatchers.any())
+//                            return builder.method(ElementMatchers.any())
+                            return builder.method(nameEndsWith("doGet"))
+
 //                            return builder.method(named("perform"))
                                     .intercept(MethodDelegation.to(resolution.resolve()));
                         } catch (Exception e) {
