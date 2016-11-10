@@ -72,7 +72,7 @@ public class TraceAgent {
                                     ClassFileLocator.ForClassLoader.of(TraceAgent.class.getClassLoader()));
                             TypePool.Resolution resolution = TypePool.Default.of(ClassFileLocator.ForClassLoader.of(contextClassLoader)).describe(interceptor);
 //                            return builder.method(ElementMatchers.any())
-                            return builder.method(nameEndsWith("doGet"))
+                            return builder.method(named("doGet").or(named("doPost")))
 
 //                            return builder.method(named("perform"))
                                     .intercept(MethodDelegation.to(resolution.resolve()));
